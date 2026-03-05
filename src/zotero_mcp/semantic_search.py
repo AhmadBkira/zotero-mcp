@@ -230,7 +230,7 @@ class ZoteroSemanticSearch:
 
         return False
 
-    def _get_items_from_source(self, limit: int | None = None, extract_fulltext: bool = False, chroma_client: ChromaClient | None = None, force_rebuild: bool = False) -> list[dict[str, Any]]:
+    def _get_items_from_source(self, limit: int | None = None, extract_fulltext: bool = True, chroma_client: ChromaClient | None = None, force_rebuild: bool = False) -> list[dict[str, Any]]:
         """
         Get items from either local database or API.
 
@@ -528,11 +528,7 @@ class ZoteroSemanticSearch:
             if not items:
                 break
 
-            # Filter out attachments and notes by default
-            filtered_items = [
-                item for item in items
-                if item.get("data", {}).get("itemType") not in ["attachment", "note"]
-            ]
+            filtered_items = items
 
             all_items.extend(filtered_items)
             start += batch_size
@@ -666,8 +662,7 @@ class ZoteroSemanticSearch:
                 metadata = self._create_metadata(item)
 
                 if not doc_text.strip():
-                    stats["skipped"] += 1
-                    continue
+                    doc_text = metadata.get("title", "") or "empty document"
 
                 documents.append(doc_text)
                 metadatas.append(metadata)
